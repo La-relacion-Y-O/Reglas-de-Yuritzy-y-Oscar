@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reglas de la Relación 💕</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Floating Hearts -->
+        <div id="floating-hearts"></div>
+
+        <!-- Sparkle Effects -->
+        <div id="sparkle-effects"></div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="title-container">
+                <span class="crown">👑</span>
+                <h1 class="main-title">💕 Reglas del Amor Eterno 💕</h1>
+                <span class="crown">👑</span>
+            </div>
+
+            <div class="couple-container">
+                <div class="person">
+                    <div class="avatar">
+                        <img src="public/Imagen de WhatsApp 2025-09-06 a las 00.43.59_37264b21.jpg" alt="Oscar" class="avatar-img">
+                    </div>
+                    <h2 class="person-name">Oscar</h2>
+                </div>
+
+                <div class="heart-center">
+                    <div class="heart-icon">❤️</div>
+                    <div class="love-text">💕 Amor Infinito 💕</div>
+                </div>
+
+                <div class="person">
+                    <div class="avatar avatar-delayed">
+                        <img src="public/Imagen de WhatsApp 2025-09-06 a las 14.10.18_f47c6f3b.jpg" alt="Yuritzy" class="avatar-img">
+                    </div>
+                    <h2 class="person-name">Yuritzy</h2>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button id="tab-rules" class="tab-btn active" data-tab="rules">📜 Reglas</button>
+                <button id="tab-planilla" class="tab-btn" data-tab="planilla">✅ Mi Planilla</button>
+                <button id="tab-historial" class="tab-btn" data-tab="historial">📊 Historial</button>
+            </div>
+        </div>
+
+        <!-- Tab Content Container -->
+        <div class="tab-content-container">
+            <!-- Tab: Reglas -->
+            <div id="content-rules" class="tab-content active">
+                <div class="rules-container">
+                    <div class="rules-card">
+                        <div class="rule-navigation">
+                            <button id="prev-btn" class="nav-btn">← Anterior</button>
+                            <div id="rule-counter" class="rule-counter">Regla 1 de 31</div>
+                            <button id="next-btn" class="nav-btn">Siguiente →</button>
+                        </div>
+
+                        <div class="current-rule">
+                            <div class="rule-content">
+                                <span class="shield-icon">💖</span>
+                                <p id="current-rule-text" class="rule-text">
+                                    No me gusta que tengas más amigos aparte de los que ya algo he sabido. No más amigos ni amiguitos.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="progress-container">
+                            <div id="progress-bar" class="progress-bar"></div>
+                        </div>
+
+                        <div id="rules-grid" class="rules-grid">
+                        </div>
+                    </div>
+
+                    <div class="golden-rule">
+                        <div class="golden-header">
+                            <span class="sparkle">✨</span>
+                            <h3 class="golden-title">🌟 Regla de Oro (#30)</h3>
+                            <span class="sparkle">✨</span>
+                        </div>
+                        <p class="golden-text">Amarnos por siempre 💗🤍</p>
+                        <div class="golden-hearts">
+                            <span class="heart-bounce">💕</span>
+                            <span class="heart-bounce heart-delay-1">💖</span>
+                            <span class="heart-bounce heart-delay-2">💝</span>
+                            <span class="heart-bounce heart-delay-3">💗</span>
+                            <span class="heart-bounce heart-delay-4">💓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Mi Planilla -->
+            <div id="content-planilla" class="tab-content">
+                <div class="planilla-container">
+                    <!-- User Selection -->
+                    <div id="user-selection" class="user-selection">
+                        <h2 class="selection-title">¿Quién está llenando la planilla?</h2>
+                        <div class="user-buttons">
+                            <button class="user-select-btn" data-user="Oscar">
+                                <div class="user-avatar">
+                                    <img src="public/Imagen de WhatsApp 2025-09-06 a las 00.43.59_37264b21.jpg" alt="Oscar">
+                                </div>
+                                <span>Oscar</span>
+                            </button>
+                            <button class="user-select-btn" data-user="Yuritzy">
+                                <div class="user-avatar">
+                                    <img src="public/Imagen de WhatsApp 2025-09-06 a las 14.10.18_f47c6f3b.jpg" alt="Yuritzy">
+                                </div>
+                                <span>Yuritzy</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Planilla Form -->
+                    <div id="planilla-form" class="planilla-form" style="display: none;">
+                        <div class="planilla-header">
+                            <h2 class="planilla-title">Planilla de <span id="current-user-name"></span></h2>
+                            <button id="change-user-btn" class="change-user-btn">Cambiar usuario</button>
+                        </div>
+                        <p class="planilla-subtitle">Marca si cumples o no cada regla</p>
+
+                        <form id="planilla-rules-form">
+                            <div id="planilla-rules-list" class="planilla-rules-list">
+                            </div>
+                            <button type="submit" class="submit-planilla-btn">💝 Guardar Planilla 💝</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Historial -->
+            <div id="content-historial" class="tab-content">
+                <div class="historial-container">
+                    <h2 class="historial-title">📊 Historial de Planillas 📊</h2>
+                    <p class="historial-subtitle">Resultados públicos de Oscar y Yuritzy</p>
+
+                    <div class="historial-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="Oscar">Oscar</button>
+                        <button class="filter-btn" data-filter="Yuritzy">Yuritzy</button>
+                    </div>
+
+                    <div id="historial-list" class="historial-list">
+                        <div class="loading-message">Cargando historial...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
