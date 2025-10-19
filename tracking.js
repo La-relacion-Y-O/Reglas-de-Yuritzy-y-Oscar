@@ -151,13 +151,28 @@ function renderRulesChecklist() {
 
     rules.forEach((rule, index) => {
         const ruleNumber = index + 1;
-        const isCompleted = ruleChecks.get(ruleNumber) || false;
+        const status = ruleChecks.get(ruleNumber);
+
+        let statusClass = '';
+        let statusIcon = '';
+        if (status === true) {
+            statusClass = 'completed';
+            statusIcon = '✅';
+        } else if (status === false) {
+            statusClass = 'not-completed';
+            statusIcon = '❎';
+        }
 
         const item = document.createElement('div');
-        item.className = `rule-check-item ${isCompleted ? 'completed' : ''}`;
+        item.className = `rule-check-item ${statusClass}`;
         item.innerHTML = `
-            <div class="checkbox-custom">
-                ${isCompleted ? '✓' : ''}
+            <div class="status-buttons">
+                <button class="status-btn status-yes ${status === true ? 'active' : ''}" data-rule="${ruleNumber}" data-status="true">
+                    ✅
+                </button>
+                <button class="status-btn status-no ${status === false ? 'active' : ''}" data-rule="${ruleNumber}" data-status="false">
+                    ❎
+                </button>
             </div>
             <div class="rule-check-content">
                 <div class="rule-check-number">Regla ${ruleNumber}</div>
@@ -165,28 +180,40 @@ function renderRulesChecklist() {
             </div>
         `;
 
-        item.addEventListener('click', () => toggleRule(ruleNumber));
         container.appendChild(item);
+    });
+
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const ruleNumber = parseInt(btn.getAttribute('data-rule'));
+            const newStatus = btn.getAttribute('data-status') === 'true';
+            setRuleStatus(ruleNumber, newStatus);
+        });
     });
 }
 
-function toggleRule(ruleNumber) {
-    const currentValue = ruleChecks.get(ruleNumber) || false;
-    ruleChecks.set(ruleNumber, !currentValue);
+function setRuleStatus(ruleNumber, status) {
+    const currentStatus = ruleChecks.get(ruleNumber);
+    if (currentStatus === status) {
+        ruleChecks.delete(ruleNumber);
+    } else {
+        ruleChecks.set(ruleNumber, status);
+    }
     renderRulesChecklist();
     updateProgress();
 }
 
 function updateProgress() {
-    const completed = Array.from(ruleChecks.values()).filter(v => v).length;
+    const marked = ruleChecks.size;
     const total = rules.length;
 
-    document.getElementById('checked-count').textContent = completed;
+    document.getElementById('checked-count').textContent = marked;
     const progressBar = document.getElementById('checking-progress');
-    progressBar.style.width = `${(completed / total) * 100}%`;
+    progressBar.style.width = `${(marked / total) * 100}%`;
 
     const completeBtn = document.getElementById('complete-session-btn');
-    completeBtn.disabled = completed !== total;
+    completeBtn.disabled = marked !== total;
 }
 
 async function saveProgress() {
@@ -197,6 +224,21 @@ async function saveProgress() {
     btn.disabled = true;
 
     try {
+        const deletePromises = [];
+        for (let i = 1; i <= rules.length; i++) {
+            if (!ruleChecks.has(i)) {
+                deletePromises.push(
+                    supabase
+                        .from('rule_checks')
+                        .delete()
+                        .eq('user_name', currentUser)
+                        .eq('check_date', dateStr)
+                        .eq('rule_number', i)
+                );
+            }
+        }
+        await Promise.all(deletePromises);
+
         for (const [ruleNumber, isCompleted] of ruleChecks.entries()) {
             const { error } = await supabase
                 .from('rule_checks')
@@ -235,6 +277,21 @@ async function completeSession() {
     btn.disabled = true;
 
     try {
+        const deletePromises = [];
+        for (let i = 1; i <= rules.length; i++) {
+            if (!ruleChecks.has(i)) {
+                deletePromises.push(
+                    supabase
+                        .from('rule_checks')
+                        .delete()
+                        .eq('user_name', currentUser)
+                        .eq('check_date', dateStr)
+                        .eq('rule_number', i)
+                );
+            }
+        }
+        await Promise.all(deletePromises);
+
         for (const [ruleNumber, isCompleted] of ruleChecks.entries()) {
             const { error: checkError } = await supabase
                 .from('rule_checks')
