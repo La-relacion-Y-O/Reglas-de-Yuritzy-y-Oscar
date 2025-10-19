@@ -212,6 +212,7 @@ function updateProgress() {
     const total = rules.length;
 
     document.getElementById('checked-count').textContent = marked;
+    document.getElementById('total-rules').textContent = total;
     const progressBar = document.getElementById('checking-progress');
     progressBar.style.width = `${(marked / total) * 100}%`;
 
