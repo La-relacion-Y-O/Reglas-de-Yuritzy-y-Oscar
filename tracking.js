@@ -471,53 +471,43 @@ async function downloadPDF() {
         const doc = new jsPDF();
 
         const pageWidth = doc.internal.pageSize.getWidth();
-        const margin = 20;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
         const contentWidth = pageWidth - 2 * margin;
         let yPos = 20;
 
         doc.setFillColor(26, 0, 51);
-        doc.rect(0, 0, pageWidth, 40, 'F');
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
         doc.setTextColor(255, 20, 147);
-        doc.setFontSize(24);
+        doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
-        doc.text('💕 Control de Reglas 💕', pageWidth / 2, 25, { align: 'center' });
+        doc.text('Resultados de Oscar', pageWidth / 2, yPos, { align: 'center' });
 
-        yPos = 60;
-
-        doc.setFillColor(255, 255, 255);
-        doc.setDrawColor(255, 20, 147);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(margin, yPos, contentWidth, 30, 3, 3, 'FD');
-
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Resultados de: ${currentResultsData.targetUser}`, margin + 5, yPos + 10);
-
-        doc.setFontSize(12);
+        yPos += 8;
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Fecha: ${formatDate(currentResultsData.date)}`, margin + 5, yPos + 20);
+        doc.text(`sabado, 18 de octubre de 2025`, pageWidth / 2, yPos, { align: 'center' });
 
-        yPos += 40;
+        yPos += 15;
 
         const percentage = ((currentResultsData.completedCount / rules.length) * 100).toFixed(1);
-        doc.setFillColor(217, 119, 6);
-        doc.setDrawColor(252, 211, 77);
+        doc.setFillColor(0, 0, 0);
+        doc.setDrawColor(34, 197, 94);
         doc.setLineWidth(1);
-        doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'FD');
+        doc.roundedRect(margin, yPos, contentWidth, 15, 3, 3, 'FD');
 
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(14);
+        doc.setTextColor(34, 197, 94);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text(
-            `Cumplimiento: ${currentResultsData.completedCount}/${rules.length} reglas (${percentage}%)`,
+            `Sesion completada - ${currentResultsData.completedCount}/${rules.length} reglas cumplidas`,
             pageWidth / 2,
-            yPos + 13,
+            yPos + 10,
             { align: 'center' }
         );
 
-        yPos += 35;
+        yPos += 22;
 
         const checksMap = new Map();
         currentResultsData.checksData.forEach(check => {
@@ -528,45 +518,44 @@ async function downloadPDF() {
             const ruleNumber = index + 1;
             const isCompleted = checksMap.get(ruleNumber) || false;
 
-            if (yPos > 250) {
+            const textLines = doc.splitTextToSize(rule, contentWidth - 20);
+            const ruleHeight = 8 + (textLines.length * 4);
+
+            if (yPos + ruleHeight > pageHeight - 20) {
                 doc.addPage();
+                doc.setFillColor(26, 0, 51);
+                doc.rect(0, 0, pageWidth, pageHeight, 'F');
                 yPos = 20;
             }
 
+            doc.setFillColor(0, 0, 0);
             if (isCompleted) {
-                doc.setFillColor(34, 197, 94, 30);
                 doc.setDrawColor(34, 197, 94);
             } else {
-                doc.setFillColor(239, 68, 68, 30);
                 doc.setDrawColor(239, 68, 68);
             }
-
-            doc.setLineWidth(0.5);
-            const ruleHeight = 25;
+            doc.setLineWidth(1);
             doc.roundedRect(margin, yPos, contentWidth, ruleHeight, 2, 2, 'FD');
 
-            doc.setFontSize(20);
-            doc.text(isCompleted ? '✅' : '❌', margin + 5, yPos + 10);
+            doc.setFontSize(14);
+            doc.text(isCompleted ? '✅' : '❌', margin + 3, yPos + 5);
 
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
+            if (isCompleted) {
+                doc.setTextColor(34, 197, 94);
+            } else {
+                doc.setTextColor(239, 68, 68);
+            }
+            doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
-            doc.text(`Regla ${ruleNumber}`, margin + 18, yPos + 8);
+            doc.text(`Regla ${ruleNumber}`, margin + 12, yPos + 4);
 
+            doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            const wrappedText = doc.splitTextToSize(rule, contentWidth - 25);
-            doc.text(wrappedText, margin + 18, yPos + 15);
+            doc.setFontSize(7);
+            doc.text(textLines, margin + 12, yPos + 8);
 
-            yPos += ruleHeight + 5;
+            yPos += ruleHeight + 3;
         });
-
-        doc.setFillColor(255, 20, 147);
-        doc.rect(0, doc.internal.pageSize.getHeight() - 15, pageWidth, 15, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
-        doc.text('Generado con amor 💕', pageWidth / 2, doc.internal.pageSize.getHeight() - 7, { align: 'center' });
 
         const fileName = `reglas_${currentResultsData.targetUser}_${formatDateISO(currentResultsData.date)}.pdf`;
         doc.save(fileName);
