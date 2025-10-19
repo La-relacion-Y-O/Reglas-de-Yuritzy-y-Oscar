@@ -27,7 +27,8 @@ const rules = [
     "No usar excusas para ocultar cosas, siempre hablar con sinceridad.",
     "No usar emojis con nadie ni registrar a nadie con emojis en el celular.",
     "No seguir a chic@s ni reaccionar a publicaciones de ninguna red social.",
-    "No se puede hablar o hacer alusión a ningún ser femenino en caso de Oscar con excepción de \"La familia de Salo y mi mamá y familia\" y de ningún ser masculino en el caso de Yuritzy con excepción de \"Su papá y sus primos y familia\"."
+    "No se puede hablar o hacer alusión a ningún ser femenino en caso de Oscar con excepción de \"La familia de Salo y mi mamá y familia\" y de ningún ser masculino en el caso de Yuritzy con excepción de \"Su papá y sus primos y familia\".",
+    "Amarnos por siempre y para siempre, sin importar lo que pase."
 ];
 
 const SUPABASE_URL = 'https://mskwsfqwmmchnwnddssc.supabase.co';
@@ -474,40 +475,79 @@ async function downloadPDF() {
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 15;
         const contentWidth = pageWidth - 2 * margin;
-        let yPos = 20;
 
-        doc.setFillColor(26, 0, 51);
-        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        function drawPageBackground() {
+            doc.setFillColor(26, 0, 51);
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-        doc.setTextColor(255, 20, 147);
-        doc.setFontSize(22);
+            for (let i = 0; i < 15; i++) {
+                const x = Math.random() * pageWidth;
+                const y = Math.random() * pageHeight;
+                const size = Math.random() * 3 + 1;
+                doc.setFillColor(255, 20, 147, 0.1);
+                doc.circle(x, y, size, 'F');
+            }
+
+            const heartSymbols = ['❤', '💕', '💖', '💗'];
+            doc.setTextColor(255, 20, 147);
+            doc.setFontSize(8);
+            for (let i = 0; i < 8; i++) {
+                const x = 5 + Math.random() * (pageWidth - 10);
+                const y = 5 + Math.random() * (pageHeight - 10);
+                doc.text(heartSymbols[Math.floor(Math.random() * heartSymbols.length)], x, y);
+            }
+        }
+
+        drawPageBackground();
+
+        let yPos = 25;
+
+        doc.setTextColor(255, 105, 180);
+        doc.setFontSize(26);
         doc.setFont('helvetica', 'bold');
-        doc.text('Resultados de Oscar', pageWidth / 2, yPos, { align: 'center' });
+        doc.text(`Resultados de ${currentResultsData.targetUser}`, pageWidth / 2, yPos, { align: 'center' });
 
-        yPos += 8;
+        yPos += 3;
+        doc.setFontSize(18);
+        doc.text('💕', pageWidth / 2 - 35, yPos);
+        doc.text('💕', pageWidth / 2 + 35, yPos);
+
+        yPos += 7;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.text(`sabado, 18 de octubre de 2025`, pageWidth / 2, yPos, { align: 'center' });
+        doc.setTextColor(255, 182, 193);
+        const formattedDate = formatDate(currentResultsData.date);
+        doc.text(formattedDate, pageWidth / 2, yPos, { align: 'center' });
 
-        yPos += 15;
+        yPos += 12;
 
         const percentage = ((currentResultsData.completedCount / rules.length) * 100).toFixed(1);
-        doc.setFillColor(0, 0, 0);
-        doc.setDrawColor(34, 197, 94);
-        doc.setLineWidth(1);
-        doc.roundedRect(margin, yPos, contentWidth, 15, 3, 3, 'FD');
+        const gradientHeight = 18;
 
-        doc.setTextColor(34, 197, 94);
-        doc.setFontSize(12);
+        for (let i = 0; i < gradientHeight; i++) {
+            const ratio = i / gradientHeight;
+            const r = Math.round(34 + (0 - 34) * ratio);
+            const g = Math.round(197 + (100 - 197) * ratio);
+            const b = Math.round(94 + (0 - 94) * ratio);
+            doc.setFillColor(r, g, b);
+            doc.rect(margin, yPos + i, contentWidth, 1, 'F');
+        }
+
+        doc.setDrawColor(34, 255, 94);
+        doc.setLineWidth(2);
+        doc.roundedRect(margin, yPos, contentWidth, gradientHeight, 4, 4, 'D');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
         doc.text(
-            `Sesion completada - ${currentResultsData.completedCount}/${rules.length} reglas cumplidas`,
+            `✨ Sesion completada - ${currentResultsData.completedCount}/${rules.length} reglas cumplidas (${percentage}%) ✨`,
             pageWidth / 2,
-            yPos + 10,
+            yPos + 12,
             { align: 'center' }
         );
 
-        yPos += 22;
+        yPos += 26;
 
         const checksMap = new Map();
         currentResultsData.checksData.forEach(check => {
@@ -518,44 +558,84 @@ async function downloadPDF() {
             const ruleNumber = index + 1;
             const isCompleted = checksMap.get(ruleNumber) || false;
 
-            const textLines = doc.splitTextToSize(rule, contentWidth - 20);
-            const ruleHeight = 8 + (textLines.length * 4);
+            const textLines = doc.splitTextToSize(rule, contentWidth - 22);
+            const ruleHeight = Math.max(12, 8 + (textLines.length * 4));
 
-            if (yPos + ruleHeight > pageHeight - 20) {
+            if (yPos + ruleHeight > pageHeight - 25) {
                 doc.addPage();
-                doc.setFillColor(26, 0, 51);
-                doc.rect(0, 0, pageWidth, pageHeight, 'F');
+                drawPageBackground();
                 yPos = 20;
             }
 
-            doc.setFillColor(0, 0, 0);
-            if (isCompleted) {
-                doc.setDrawColor(34, 197, 94);
+            if (ruleNumber === 30) {
+                for (let offset = 0; offset < 3; offset++) {
+                    doc.setDrawColor(255, 20 + offset * 10, 147);
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(margin - offset, yPos - offset, contentWidth + offset * 2, ruleHeight + offset * 2, 3, 3, 'D');
+                }
+
+                doc.setFillColor(139, 0, 139);
+                doc.roundedRect(margin, yPos, contentWidth, ruleHeight, 3, 3, 'F');
+
+                doc.setTextColor(255, 215, 0);
+                doc.setFontSize(16);
+                doc.text('💕', margin + 3, yPos + 7);
+                doc.text('💕', contentWidth + margin - 5, yPos + 7);
+
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Regla ${ruleNumber} ✨`, margin + 13, yPos + 5);
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
+                doc.text(textLines, margin + 13, yPos + 10);
+
+                doc.setTextColor(255, 20, 147);
+                doc.setFontSize(7);
+                doc.text('❤ Nuestra promesa eterna ❤', pageWidth / 2, yPos + ruleHeight - 2, { align: 'center' });
             } else {
-                doc.setDrawColor(239, 68, 68);
+                doc.setFillColor(0, 0, 0);
+                if (isCompleted) {
+                    doc.setDrawColor(34, 197, 94);
+                } else {
+                    doc.setDrawColor(239, 68, 68);
+                }
+                doc.setLineWidth(1.5);
+                doc.roundedRect(margin, yPos, contentWidth, ruleHeight, 3, 3, 'FD');
+
+                doc.setFontSize(15);
+                doc.text(isCompleted ? '✅' : '❌', margin + 3, yPos + 6);
+
+                if (isCompleted) {
+                    doc.setTextColor(100, 255, 150);
+                } else {
+                    doc.setTextColor(255, 120, 120);
+                }
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Regla ${ruleNumber}`, margin + 13, yPos + 5);
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.text(textLines, margin + 13, yPos + 10);
             }
-            doc.setLineWidth(1);
-            doc.roundedRect(margin, yPos, contentWidth, ruleHeight, 2, 2, 'FD');
-
-            doc.setFontSize(14);
-            doc.text(isCompleted ? '✅' : '❌', margin + 3, yPos + 5);
-
-            if (isCompleted) {
-                doc.setTextColor(34, 197, 94);
-            } else {
-                doc.setTextColor(239, 68, 68);
-            }
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Regla ${ruleNumber}`, margin + 12, yPos + 4);
-
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7);
-            doc.text(textLines, margin + 12, yPos + 8);
 
             yPos += ruleHeight + 3;
         });
+
+        const totalPages = doc.internal.pages.length - 1;
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFillColor(139, 0, 139);
+            doc.rect(0, pageHeight - 12, pageWidth, 12, 'F');
+
+            doc.setTextColor(255, 182, 193);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Generado con amor 💕 Ø=Ü', pageWidth / 2, pageHeight - 5, { align: 'center' });
+        }
 
         const fileName = `reglas_${currentResultsData.targetUser}_${formatDateISO(currentResultsData.date)}.pdf`;
         doc.save(fileName);
