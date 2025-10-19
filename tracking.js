@@ -38,6 +38,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentDate = new Date();
 let ruleChecks = new Map();
+let currentResultsData = null;
 
 const screens = {
     userSelection: document.getElementById('user-selection'),
@@ -93,6 +94,7 @@ function setupEventListeners() {
 
     document.getElementById('prev-date-btn').addEventListener('click', () => changeResultsDate(-1));
     document.getElementById('next-date-btn').addEventListener('click', () => changeResultsDate(1));
+    document.getElementById('download-pdf-btn').addEventListener('click', downloadPDF);
 }
 
 function showScreen(screenName) {
@@ -390,6 +392,13 @@ async function loadAndDisplayResults(targetUser) {
     const completedCount = checksData.filter(c => c.is_completed).length;
     showResultsStatus('completed', `✅ Sesión completada - ${completedCount}/${rules.length} reglas cumplidas`);
 
+    currentResultsData = {
+        targetUser,
+        date: currentDate,
+        checksData,
+        completedCount
+    };
+
     renderResults(checksData);
 }
 
@@ -444,6 +453,137 @@ function formatDate(date) {
 
 function formatDateISO(date) {
     return date.toISOString().split('T')[0];
+}
+
+async function downloadPDF() {
+    if (!currentResultsData) {
+        alert('No hay resultados para descargar');
+        return;
+    }
+
+    const btn = document.getElementById('download-pdf-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '📥 Generando PDF...';
+    btn.disabled = true;
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const contentWidth = pageWidth - 2 * margin;
+        let yPos = 20;
+
+        doc.setFillColor(26, 0, 51);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+
+        doc.setTextColor(255, 20, 147);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('💕 Control de Reglas 💕', pageWidth / 2, 25, { align: 'center' });
+
+        yPos = 60;
+
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(255, 20, 147);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(margin, yPos, contentWidth, 30, 3, 3, 'FD');
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Resultados de: ${currentResultsData.targetUser}`, margin + 5, yPos + 10);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Fecha: ${formatDate(currentResultsData.date)}`, margin + 5, yPos + 20);
+
+        yPos += 40;
+
+        const percentage = ((currentResultsData.completedCount / rules.length) * 100).toFixed(1);
+        doc.setFillColor(217, 119, 6);
+        doc.setDrawColor(252, 211, 77);
+        doc.setLineWidth(1);
+        doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'FD');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(
+            `Cumplimiento: ${currentResultsData.completedCount}/${rules.length} reglas (${percentage}%)`,
+            pageWidth / 2,
+            yPos + 13,
+            { align: 'center' }
+        );
+
+        yPos += 35;
+
+        const checksMap = new Map();
+        currentResultsData.checksData.forEach(check => {
+            checksMap.set(check.rule_number, check.is_completed);
+        });
+
+        rules.forEach((rule, index) => {
+            const ruleNumber = index + 1;
+            const isCompleted = checksMap.get(ruleNumber) || false;
+
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            if (isCompleted) {
+                doc.setFillColor(34, 197, 94, 30);
+                doc.setDrawColor(34, 197, 94);
+            } else {
+                doc.setFillColor(239, 68, 68, 30);
+                doc.setDrawColor(239, 68, 68);
+            }
+
+            doc.setLineWidth(0.5);
+            const ruleHeight = 25;
+            doc.roundedRect(margin, yPos, contentWidth, ruleHeight, 2, 2, 'FD');
+
+            doc.setFontSize(20);
+            doc.text(isCompleted ? '✅' : '❌', margin + 5, yPos + 10);
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Regla ${ruleNumber}`, margin + 18, yPos + 8);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            const wrappedText = doc.splitTextToSize(rule, contentWidth - 25);
+            doc.text(wrappedText, margin + 18, yPos + 15);
+
+            yPos += ruleHeight + 5;
+        });
+
+        doc.setFillColor(255, 20, 147);
+        doc.rect(0, doc.internal.pageSize.getHeight() - 15, pageWidth, 15, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Generado con amor 💕', pageWidth / 2, doc.internal.pageSize.getHeight() - 7, { align: 'center' });
+
+        const fileName = `reglas_${currentResultsData.targetUser}_${formatDateISO(currentResultsData.date)}.pdf`;
+        doc.save(fileName);
+
+        btn.textContent = '✅ Descargado';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 2000);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        btn.textContent = '❌ Error';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);

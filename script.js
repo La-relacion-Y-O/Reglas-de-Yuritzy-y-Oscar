@@ -207,6 +207,133 @@ function createHeartBurst() {
     }, 2500);
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const goldenRule = document.querySelector('.golden-rule');
+    if (goldenRule) {
+        goldenRule.addEventListener('click', () => {
+            goldenRule.classList.add('celebrating');
+            createConfettiExplosion();
+            createHeartExplosion();
+            playMagicalSound();
+
+            setTimeout(() => {
+                goldenRule.classList.remove('celebrating');
+            }, 2000);
+        });
+    }
+});
+
+function createConfettiExplosion() {
+    const colors = ['#ff1493', '#ffd700', '#ff69b4', '#8b008b', '#fbbf24', '#ffffff'];
+
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = '50%';
+            confetti.style.top = '50%';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '9999';
+            confetti.style.boxShadow = `0 0 10px ${colors[Math.floor(Math.random() * colors.length)]}`;
+
+            const angle = (Math.random() * 360) * (Math.PI / 180);
+            const velocity = 200 + Math.random() * 300;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity;
+
+            confetti.animate([
+                {
+                    transform: 'translate(-50%, -50%) scale(1) rotate(0deg)',
+                    opacity: 1
+                },
+                {
+                    transform: `translate(calc(-50% + ${vx}px), calc(-50% + ${vy}px)) scale(0.5) rotate(${Math.random() * 720}deg)`,
+                    opacity: 0
+                }
+            ], {
+                duration: 1500 + Math.random() * 1000,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            });
+
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 2500);
+        }, i * 3);
+    }
+}
+
+function createHeartExplosion() {
+    const heartEmojis = ['💕', '💖', '💝', '💗', '💓', '💘', '💞', '💟', '❤️', '🧡', '💛', '💚', '💙', '💜'];
+
+    for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+            const heart = document.createElement('div');
+            heart.style.position = 'fixed';
+            heart.style.left = '50%';
+            heart.style.top = '50%';
+            heart.style.fontSize = (20 + Math.random() * 30) + 'px';
+            heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '9999';
+            heart.style.filter = 'drop-shadow(0 0 10px #ff1493)';
+
+            const angle = (Math.random() * 360) * (Math.PI / 180);
+            const velocity = 150 + Math.random() * 250;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity;
+
+            heart.animate([
+                {
+                    transform: 'translate(-50%, -50%) scale(0.5) rotate(0deg)',
+                    opacity: 1
+                },
+                {
+                    transform: `translate(calc(-50% + ${vx}px), calc(-50% + ${vy}px)) scale(1.5) rotate(${Math.random() * 360}deg)`,
+                    opacity: 0
+                }
+            ], {
+                duration: 2000 + Math.random() * 1000,
+                easing: 'ease-out'
+            });
+
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 3000);
+        }, i * 15);
+    }
+}
+
+function playMagicalSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+
+    notes.forEach((frequency, index) => {
+        setTimeout(() => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }, index * 150);
+    });
+}
 
